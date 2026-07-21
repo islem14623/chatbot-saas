@@ -143,3 +143,51 @@ def get_messages(conversation_id: int, token: str, db: Session = Depends(get_db)
             for m in messages
         ]
     }
+@router.post("/public-chat")
+def public_chat(data: ChatMessage, db: Session = Depends(get_db)):
+    # Step 1: Company must exist
+    company = db.get(Company, data.company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found!")
+
+    # Step 2: Get or create conversation
+    if data.conversation_id:
+        conversation = db.get(Conversation, data.conversation_id)
+    else:
+        conversation = Conversation(
+            company_id=company.id,
+            title=data.message[:50]
+        )
+        db.add(conversation)
+        db.commit()
+
+    # Step 3: Get chat history
+    previous_messages = db.query(Message).filter(
+        Message.conversation_id == conversation.id
+    ).all()
+
+    # Step 4: Build context with company personality
+    history = [f"system: {company.system_prompt}"]
+    for msg in previous_messages:
+        history.append(f"{msg.role}: {msg.content}")
+    history.append(f"user: {data.message}")
+    full_context = "\n".join(history)
+
+    # Step 5: Save user message
+    db.add(Message(conversation_id=conversation.id, role="user", content=data.message))
+
+    # Step 6: Ask Gemini
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
+    response = model.generate_content(full_context)
+    ai_response = response.text
+
+    # Step 7: Save AI reply
+    db.add(Message(conversation_id=conversation.id, role="assistant", content=ai_response))
+    db.commit()
+
+    # Step 8: Return response
+    return {
+        "conversation_id": conversation.id,
+        "ai_response": ai_response
+    }

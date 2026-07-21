@@ -1,3 +1,5 @@
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
 from app.database import engine, Base
 from app.auth import router as auth_router  # ADD THIS
@@ -13,6 +15,13 @@ app = FastAPI(
     version="1.0.0",
     description="AI Chatbot SaaS for businesses"
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.mount("/static", StaticFiles(directory="../frontend"), name="static")
 
 app.include_router(auth_router, prefix="/api/auth")  # ADD THIS
 app.include_router(chat_router, prefix="/api/chat")

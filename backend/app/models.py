@@ -26,12 +26,13 @@ class User(Base):
             password.encode('utf-8'),
             self.password_hash.encode('utf-8')
         )
-
+ 
 class Conversation(Base):
     __tablename__ = 'conversations'
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=True)
     title = Column(String(200), default='New Conversation')
     created_at = Column(DateTime, default=datetime.utcnow)
 
