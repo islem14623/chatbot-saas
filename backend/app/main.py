@@ -1,5 +1,4 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
 from app.database import engine, Base
 from app.auth import router as auth_router  # ADD THIS
@@ -21,8 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/static", StaticFiles(directory="../frontend"), name="static")
-
 app.include_router(auth_router, prefix="/api/auth")  # ADD THIS
 app.include_router(chat_router, prefix="/api/chat")
 app.include_router(companies_router, prefix="/api/companies")
