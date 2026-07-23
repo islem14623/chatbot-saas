@@ -1,7 +1,7 @@
 (function() {
     const script = document.currentScript;
     const companyId = script.getAttribute('data-company-id');
-    const API = 'http://localhost:5000';
+    const API = 'https://chatbot-backend-kbpn.onrender.com';
 
     // Floating button
     const button = document.createElement('button');
