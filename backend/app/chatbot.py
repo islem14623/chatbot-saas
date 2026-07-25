@@ -1,9 +1,12 @@
+from urllib import response
+from xmlrpc import client
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Company, User, Conversation, Message, Company
 from app.schemas import ChatMessage
-import google.generativeai as genai
+from groq import Groq 
 import jwt
 import os
 
@@ -76,11 +79,13 @@ def chat(
     )
     db.add(user_message)
     
-    # Step 6: Send to Gemini with history
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
-    response = model.generate_content(full_context)
-    ai_response = response.text
+    # Step 6: Send to grok with history
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role": "user", "content": full_context}]
+    )
+    ai_response = response.choices[0].message.content
     
     # Step 7: Save AI response
     ai_message = Message(
@@ -176,11 +181,13 @@ def public_chat(data: ChatMessage, db: Session = Depends(get_db)):
     # Step 5: Save user message
     db.add(Message(conversation_id=conversation.id, role="user", content=data.message))
 
-    # Step 6: Ask Gemini
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
-    response = model.generate_content(full_context)
-    ai_response = response.text
+    # Step 6: Ask groq
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role": "user", "content": full_context}]
+    )
+    ai_response = response.choices[0].message.content
 
     # Step 7: Save AI reply
     db.add(Message(conversation_id=conversation.id, role="assistant", content=ai_response))
