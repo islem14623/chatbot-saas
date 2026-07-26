@@ -1,55 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Companies</title>
+  <title>My Companies</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>🏢 My Companies</h1>
 
-    <h2>➕ Create New Company</h2>
-    <input type="text" id="name" placeholder="Company Name"><br>
-    <input type="text" id="description" placeholder="Description"><br>
-    <textarea id="prompt" placeholder="AI instructions (system prompt)"></textarea><br>
-    <button onclick="createCompany()">Create</button>
+<header class="topbar">
+  <h1>🏢 My Chatbots</h1>
+</header>
 
-    <hr>
-    <h2>📋 Existing Companies</h2>
-    <div id="companies-list">Loading...</div>
+<main class="container">
 
-    <script>
-        const API = 'https://chatbot-backend-kbpn.onrender.com';
-        const token = localStorage.getItem('token');
+  <section class="card form-card">
+    <h2>➕ Create New Chatbot</h2>
+    <input type="text" id="name" placeholder="Company Name">
+    <input type="text" id="description" placeholder="Short description">
+    <textarea id="prompt" placeholder="AI instructions (system prompt)"></textarea>
+    <button onclick="createCompany()">Create Chatbot</button>
+  </section>
 
-        async function createCompany() {
-            const name = document.getElementById('name').value;
-            const description = document.getElementById('description').value;
-            const system_prompt = document.getElementById('prompt').value;
+  <section>
+    <h2>📋 Your Chatbots</h2>
+    <div id="companies-list" class="grid">Loading...</div>
+  </section>
 
-            const res = await fetch(`${API}/api/companies/?token=${token}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, description, system_prompt })
-            });
+</main>
 
-            if (res.ok) {
-                alert('Company created!');
-                loadCompanies();
-            } else {
-                alert('Error creating company');
-            }
-        }
-
-        async function loadCompanies() {
-            const res = await fetch(`${API}/api/companies/?token=${token}`);
-            const data = await res.json();
-
-            const list = document.getElementById('companies-list');
-           list.innerHTML = data.companies.map(c =>
-           `<p><b>${c.name}</b> - ${c.description} (ID: ${c.id})</p>`
-            ).join('');
-
-        loadCompanies(); 
-    }
-    </script>
+<script src="companies.js"></script>
 </body>
 </html>
