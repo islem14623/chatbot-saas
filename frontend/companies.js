@@ -40,7 +40,7 @@ function testBot(companyId) {
 }
 
 function showEmbed(companyId) {
-  const code = `<script src="${API}/widget.js" data-company="${companyId}"><\/script>`;
+  const code = `<script src="${API}/widget.js" data-company-id="${companyId}"><\/script>`;
   prompt('Copy this embed code:', code);
 }
 
