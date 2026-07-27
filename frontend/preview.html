@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Chatbot</title>
+</head>
+<body>
+  <h1>🧪 Testing Your Chatbot</h1>
+  <p>This is exactly what your customers will see on their website.</p>
+
+  <script>
+    // Step 1: Read company_id from URL (e.g. preview.html?company_id=5)
+    const params = new URLSearchParams(window.location.search);
+    const companyId = params.get('company_id');
+
+    // Step 2: Create the widget script dynamically
+    const script = document.createElement('script');
+    script.src = 'https://chatbot-frontend-iwnp.onrender.com/widget.js';
+    script.setAttribute('data-company-id', companyId);
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

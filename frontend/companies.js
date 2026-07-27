@@ -6,9 +6,12 @@ async function createCompany() {
   const description = document.getElementById('description').value;
   const system_prompt = document.getElementById('prompt').value;
 
-  const res = await fetch(`${API}/api/companies/?token=${token}`, {
+  const res = await fetch(`${API}/api/companies/`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
     body: JSON.stringify({ name, description, system_prompt })
   });
 
@@ -21,7 +24,9 @@ async function createCompany() {
 }
 
 async function loadCompanies() {
-  const res = await fetch(`${API}/api/companies/?token=${token}`);
+  const res = await fetch(`${API}/api/companies/`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
   const data = await res.json();
 
   const list = document.getElementById('companies-list');
@@ -36,7 +41,7 @@ async function loadCompanies() {
 }
 
 function testBot(companyId) {
-  window.location.href = `chat.html?company_id=${companyId}`;
+  window.location.href = `preview.html?company_id=${companyId}`;
 }
 
 function showEmbed(companyId) {
@@ -44,4 +49,4 @@ function showEmbed(companyId) {
   prompt('Copy this embed code:', code);
 }
 
-loadCompanies(); // run once on page load
+loadCompanies();
