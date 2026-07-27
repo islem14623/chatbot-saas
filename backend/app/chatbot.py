@@ -1,7 +1,7 @@
 from urllib import response
 from xmlrpc import client
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Company, User, Conversation, Message, Company
@@ -12,8 +12,8 @@ import os
 
 router = APIRouter()
 
-def get_current_user(token: str, db: Session):
-    """Decode token and get user"""
+def get_current_user(authorization: str = Header(...), db: Session = Depends(get_db)):
+    token = authorization.replace("Bearer ", "")
     try:
         payload = jwt.decode(
             token,
@@ -33,16 +33,14 @@ def get_current_user(token: str, db: Session):
 @router.post("/chat")
 def chat(
     data: ChatMessage,
-    token: str,
-    db: Session = Depends(get_db)
-):
-    # Step 1: Verify user
-    user = get_current_user(token, db)
+      user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)):
+    
     
     # Step 2: Get or create conversation
     if data.conversation_id:
         conversation = db.get(Conversation, data.conversation_id)
-        if not conversation:
+        if not conversation or conversation.user_id != user.id:
             raise HTTPException(status_code=404, detail="Conversation not found!")
     else:
         conversation = Conversation(
@@ -104,12 +102,12 @@ def chat(
     }
 
 @router.get("/conversations")
-def get_conversations(token: str, db: Session = Depends(get_db)):
+def get_conversations(
+    user: User = Depends(get_current_user),
+      db: Session = Depends(get_db)):
     
-    # Step 1: Verify user
-    user = get_current_user(token, db)
-    
-    # Step 2: Get all conversations
+    # Step 1: Get all conversations
+   
     conversations = db.query(Conversation).filter(
         Conversation.user_id == user.id
     ).all()
@@ -126,10 +124,12 @@ def get_conversations(token: str, db: Session = Depends(get_db)):
         ]
     }
 @router.get("/conversations/{conversation_id}/messages")
-def get_messages(conversation_id: int, token: str, db: Session = Depends(get_db)):
+def get_messages(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     
-    # Step 1: Verify user
-    user = get_current_user(token, db)
+        # Step 1: Get conversation and check ownership
+    conversation = db.get(Conversation, conversation_id)
+    if not conversation or conversation.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied!")
     
     # Step 2: Get messages
     messages = db.query(Message).filter(
